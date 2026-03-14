@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rarity Background Animations — V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #F2EDE4;
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .panel {
+    width: 100%; max-width: 400px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    margin: 20px auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 2px solid #E8DCC8;
+  }
+  .panel-header {
+    background: linear-gradient(180deg, #F8E8A0, #E8C860);
+    padding: 14px 20px; text-align: center;
+    border-bottom: 2px solid #D4A830;
+  }
+  .panel-header h2 { font-size: 20px; font-weight: 900; color: #5A3800; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
+  .panel-header .sub { font-size: 11px; font-weight: 700; color: #8B6914; margin-top: 2px; }
+
+  .table-header {
+    display: flex; padding: 8px 16px;
+    background: #FAF6F0; border-bottom: 1px solid #E8E0D4;
+    font-size: 12px; font-weight: 800; color: #888070;
+  }
+  .table-header .col-name { flex: 1; }
+  .table-header .col-lv { width: 70px; text-align: center; }
+
+  .rarity-row {
+    position: relative; height: 44px; overflow: hidden;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .rarity-row:last-child { border-bottom: none; }
+  .rarity-row canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  .row-content {
+    position: relative; z-index: 2;
+    display: flex; align-items: center; height: 100%; padding: 0 16px;
+    pointer-events: none;
+  }
+  .row-content .rname { flex: 1; font-size: 14px; font-weight: 800; }
+  .row-content .rname.dark { color: #3A2800; text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+  .row-content .rname.light { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+  .row-content .pct { width: 70px; text-align: center; font-size: 13px; font-weight: 800; }
+  .row-content .pct.dark { color: #3A2800; text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+  .row-content .pct.light { color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+  .row-content .pct2 {
+    width: 70px; text-align: center; font-size: 12px; font-weight: 700;
+    background: rgba(0,0,0,0.08); border-radius: 4px; padding: 3px 0; margin: 6px 0;
+  }
+  .row-content .pct2.dark { color: rgba(58,40,0,0.5); }
+  .row-content .pct2.light { color: rgba(255,255,255,0.5); }
+
+  .static-row { position: relative; height: 44px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .static-row .row-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  .static-row .row-content { position: relative; z-index: 2; }
+
+  .controls {
+    display: flex; gap: 8px; padding: 12px 16px; justify-content: center;
+    flex-wrap: wrap; background: #FAF6F0; border-top: 1px solid #E8E0D4;
+  }
+  .controls button {
+    background: #FFFFFF; border: 2px solid #E0D8CC;
+    font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+    color: #6B5E4A; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .controls button:hover { border-color: #C8A040; color: #8B6914; }
+  .controls button.active { background: #FFF8E0; border-color: #D4A830; color: #8B6914; }
+
+
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <div class="panel-header">
+    <h2>Forge Upgrade</h2>
+    <div class="sub">Rarity Background Animations</div>
+  </div>
+  <div class="table-header">
+    <span class="col-name">Rarity</span>
+    <span class="col-lv">Level 7</span>
+    <span class="col-lv">Level 8</span>
+  </div>
+
+  <!-- STATIC: Common — #E3C571 dark text -->
+  <div class="static-row">
+    <div class="row-bg" style="background:#E3C571"></div>
+    <div class="row-content"><span class="rname dark">Common</span><span class="pct dark">—</span><span class="pct2 dark">12.345%</span></div>
+  </div>
+  <!-- STATIC: Uncommon — #4FA24F white text -->
+  <div class="static-row">
+    <div class="row-bg" style="background:#4FA24F"></div>
+    <div class="row-content"><span class="rname light">Uncommon</span><span class="pct light">12.345%</span><span class="pct2 light">12.345%</span></div>
+  </div>
+  <!-- STATIC: Rare — #46B5C2 white text -->
+  <div class="static-row">
+    <div class="row-bg" style="background:#46B5C2"></div>
+    <div class="row-content"><span class="rname light">Rare</span><span class="pct light">12.345%</span><span class="pct2 light">12.345%</span></div>
+  </div>
+  <!-- STATIC: Superior — #9B56D8 white text -->
+  <div class="static-row">
+    <div class="row-bg" style="background:#9B56D8"></div>
+    <div class="row-content"><span class="rname light">Superior</span><span class="pct light">12.345%</span><span class="pct2 light">12.345%</span></div>
+  </div>
+  <!-- STATIC: Epic — #E6D24A dark text -->
+  <div class="static-row">
+    <div class="row-bg" style="background:#E6D24A"></div>
+    <div class="row-content"><span class="rname dark">Epic</span><span class="pct dark">12.345%</span><span class="pct2 dark">12.345%</span></div>
+  </div>
+
+  <!-- ANIMATED ROWS -->
+  <div class="rarity-row" id="row-legendary"><canvas></canvas>
+    <div class="row-content"><span class="rname light">Legendary</span><span class="pct light">0%</span><span class="pct2 light">1%</span></div>
+  </div>
+  <div class="rarity-row" id="row-mythic"><canvas></canvas>
+    <div class="row-content"><span class="rname light">Mythic</span><span class="pct light">0%</span><span class="pct2 light">0%</span></div>
+  </div>
+  <div class="rarity-row" id="row-ancient"><canvas></canvas>
+    <div class="row-content"><span class="rname light">Ancient</span><span class="pct light">0%</span><span class="pct2 light">0%</span></div>
+  </div>
+  <div class="rarity-row" id="row-immortal"><canvas></canvas>
+    <div class="row-content"><span class="rname dark">Immortal</span><span class="pct dark">0%</span><span class="pct2 dark">0%</span></div>
+  </div>
+  <div class="rarity-row" id="row-divine"><canvas></canvas>
+    <div class="row-content"><span class="rname dark">Divine</span><span class="pct dark">0%</span><span class="pct2 dark">0%</span></div>
+  </div>
+  <div class="rarity-row" id="row-ethernal"><canvas></canvas>
+    <div class="row-content"><span class="rname dark">Ethernal</span><span class="pct dark">0%</span><span class="pct2 dark">0%</span></div>
+  </div>
+
+  <div class="controls">
+    <button class="active" onclick="setSpeed(1, this)">1×</button>
+    <button onclick="setSpeed(0.3, this)">Slow</button>
+    <button onclick="setSpeed(2, this)">2×</button>
+    <button onclick="togglePause(this)" id="pauseBtn">⏸</button>
+  </div>
+</div>
+
+
+<script>
+let paused = false, speedMult = 1, globalTime = 0, lastTS = 0;
+
+function setSpeed(s, btn) {
+  speedMult = s;
+  document.querySelectorAll('.controls button:not(#pauseBtn)').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function togglePause(btn) { paused = !paused; btn.textContent = paused ? '▶' : '⏸'; }
+
+function rgba(r,g,b,a) { return `rgba(${r},${g},${b},${a})`; }
+function tintW(base, amt) {
+  return [ Math.round(base[0]+(255-base[0])*amt), Math.round(base[1]+(255-base[1])*amt), Math.round(base[2]+(255-base[2])*amt) ];
+}
+function darken(base, amt) {
+  return [ Math.round(base[0]*(1-amt)), Math.round(base[1]*(1-amt)), Math.round(base[2]*(1-amt)) ];
+}
+function seeded(seed) { let s=seed; return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646;}; }
+
+// ═══════════ CONFIRMED GAME COLORS ═══════════
+const COL = {
+  legendary: [232, 86, 72],     // #E85648 — red
+  mythic:    [106, 81, 73],     // #6A5149 — dark brown
+  ancient:   [224, 111, 165],   // #E06FA5 — hot pink
+  immortal:  [159, 232, 217],   // #9FE8D9 — soft teal-mint
+  divine:    [92, 195, 148],    // #5CC394 — green (midpoint of gradient)
+  ethernal:  [255, 255, 255],   // #FFFFFF — white
+};
+
+
+// ═══════════════════════════════════════════
+// LEGENDARY — ◆ Diamonds, slow drift with glint
+// Red base. Fewer, bigger, with gentle float and occasional flare.
+// ═══════════════════════════════════════════
+function initLegendary(w, h) {
+  const rng = seeded(42);
+  const shapes = [];
+  for (let i = 0; i < 9; i++) {
+    shapes.push({
+      x: rng() * w * 1.5,
+      y: 6 + rng() * (h - 12),
+      size: 8 + rng() * 10,
+      opacity: 0.22 + rng() * 0.10,
+      speed: 0.6 + rng() * 0.4,
+      floatPhase: rng() * Math.PI * 2,
+      floatAmp: 2 + rng() * 4,
+      isGlinter: rng() < 0.3,
+      glintPhase: rng() * Math.PI * 2,
+    });
+  }
+  return shapes;
+}
+
+function drawLegendary(ctx, w, h, t, shapes) {
+  const base = COL.legendary;
+  ctx.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+  ctx.fillRect(0, 0, w, h);
+  const c = tintW(base, 0.5);
+  const cBright = tintW(base, 0.7);
+
+  shapes.forEach(s => {
+    const period = 18 / s.speed;
+    const x = ((s.x + (t / period) * w) % (w * 1.5)) - w * 0.15;
+    const y = s.y + Math.sin(t * 0.4 + s.floatPhase) * s.floatAmp;
+    const sz = s.size;
+
+    // Glint: some diamonds periodically flare brighter
+    let op = s.opacity;
+    let col = c;
+    if (s.isGlinter) {
+      const glint = Math.sin(t * 0.8 + s.glintPhase);
+      if (glint > 0.6) {
+        const flare = (glint - 0.6) / 0.4; // 0→1 during flare
+        op = s.opacity + flare * 0.22;
+        col = [
+          Math.round(c[0] + (cBright[0] - c[0]) * flare),
+          Math.round(c[1] + (cBright[1] - c[1]) * flare),
+          Math.round(c[2] + (cBright[2] - c[2]) * flare),
+        ];
+        // Glow halo during flare
+        const glowR = sz * 2.2;
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+        glow.addColorStop(0, rgba(cBright[0], cBright[1], cBright[2], flare * 0.2));
+        glow.addColorStop(1, rgba(cBright[0], cBright[1], cBright[2], 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    ctx.moveTo(0, -sz);
+    ctx.lineTo(sz * 0.5, 0);
+    ctx.lineTo(0, sz);
+    ctx.lineTo(-sz * 0.5, 0);
+    ctx.closePath();
+    ctx.fillStyle = rgba(col[0], col[1], col[2], op);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+
+// ═══════════════════════════════════════════
+// MYTHIC — Floating orbs with glow + tail
+// Dark brown base. Use warm amber/cream for high contrast.
+// Fewer, bigger orbs. Two layers for parallax.
+// ═══════════════════════════════════════════
+function initMythic(w, h) {
+  const rng = seeded(77);
+  const back = [], front = [];
+  for (let i = 0; i < 3; i++) {
+    back.push({
+      x: rng()*w, y: 6+rng()*(h-12),
+      rx: 18+rng()*14, ry: 14+rng()*12,
+      opacity: 0.18+rng()*0.08,
+      floatPhase: rng()*Math.PI*2,
+    });
+  }
+  for (let i = 0; i < 5; i++) {
+    front.push({
+      x: rng()*w, y: 4+rng()*(h-8),
+      rx: 8+rng()*8, ry: 6+rng()*7,
+      opacity: 0.22+rng()*0.10,
+      floatPhase: rng()*Math.PI*2,
+    });
+  }
+  return { back, front };
+}
+
+function drawMythic(ctx, w, h, t, shapes) {
+  const base = COL.mythic;
+  ctx.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+  ctx.fillRect(0, 0, w, h);
+
+  // Use warm amber/cream instead of muddy beige — much higher contrast on dark brown
+  const cCore = [210, 180, 140];   // warm cream core
+  const cGlow = [190, 155, 110];   // amber glow
+  const cBright = [230, 205, 165]; // bright highlight
+  const ang = 0.5; // ~30 degree diagonal
+
+  // Back layer — slow diagonal drift, big soft orbs
+  shapes.back.forEach(s => {
+    const dx = Math.cos(ang)*(t/12)*w;
+    const dy = -Math.sin(ang)*(t/12)*w;
+    let x = ((s.x+dx)%(w+s.rx*4))-s.rx*2;
+    let y = ((s.y+dy)%(h+s.ry*4));
+    if(y<-s.ry*2) y+=h+s.ry*4; if(y>h+s.ry*2) y-=h+s.ry*4;
+    // Gentle vertical float
+    y += Math.sin(t*0.3+s.floatPhase)*3;
+
+    // Tail behind the orb
+    const tailLen = Math.max(s.rx,s.ry)*2.2;
+    const tailDx = -Math.cos(ang)*tailLen;
+    const tailDy = Math.sin(ang)*tailLen;
+    const tailGrad = ctx.createLinearGradient(x, y, x+tailDx, y+tailDy);
+    tailGrad.addColorStop(0, rgba(cGlow[0],cGlow[1],cGlow[2],s.opacity*0.45));
+    tailGrad.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2],0));
+    ctx.fillStyle = tailGrad;
+    ctx.beginPath();
+    ctx.ellipse(x+tailDx*0.45, y+tailDy*0.45, s.rx*1.1, s.ry*0.55, ang, 0, Math.PI*2);
+    ctx.fill();
+
+    // Outer glow halo
+    const glowR = Math.max(s.rx,s.ry)*2;
+    const glow = ctx.createRadialGradient(x,y,0,x,y,glowR);
+    glow.addColorStop(0, rgba(cBright[0],cBright[1],cBright[2],s.opacity*0.35));
+    glow.addColorStop(0.4, rgba(cGlow[0],cGlow[1],cGlow[2],s.opacity*0.12));
+    glow.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2],0));
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(x,y,glowR,0,Math.PI*2); ctx.fill();
+
+    // Core orb
+    const coreR = Math.max(s.rx,s.ry);
+    const core = ctx.createRadialGradient(x,y,0,x,y,coreR);
+    core.addColorStop(0, rgba(cBright[0],cBright[1],cBright[2],s.opacity*1.3));
+    core.addColorStop(0.4, rgba(cCore[0],cCore[1],cCore[2],s.opacity*0.7));
+    core.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2],0));
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.ellipse(x,y,s.rx,s.ry,0,0,Math.PI*2); ctx.fill();
+  });
+
+  // Front layer — faster opposite diagonal, smaller orbs
+  shapes.front.forEach(s => {
+    const dx = -Math.cos(ang)*(t/8)*w;
+    const dy = Math.sin(ang)*(t/8)*w;
+    let x = ((s.x+dx)%(w+s.rx*4));
+    if(x<-s.rx*2) x+=w+s.rx*4;
+    let y = ((s.y+dy)%(h+s.ry*4));
+    if(y<-s.ry*2) y+=h+s.ry*4; if(y>h+s.ry*2) y-=h+s.ry*4;
+    y += Math.sin(t*0.45+s.floatPhase)*2;
+
+    // Tail
+    const tailLen = Math.max(s.rx,s.ry)*1.8;
+    const tailDx = Math.cos(ang)*tailLen;
+    const tailDy = -Math.sin(ang)*tailLen;
+    const tailGrad = ctx.createLinearGradient(x, y, x+tailDx, y+tailDy);
+    tailGrad.addColorStop(0, rgba(cCore[0],cCore[1],cCore[2],s.opacity*0.35));
+    tailGrad.addColorStop(1, rgba(cCore[0],cCore[1],cCore[2],0));
+    ctx.fillStyle = tailGrad;
+    ctx.beginPath();
+    ctx.ellipse(x+tailDx*0.4, y+tailDy*0.4, s.rx*1.0, s.ry*0.5, -ang, 0, Math.PI*2);
+    ctx.fill();
+
+    // Glow
+    const glowR = Math.max(s.rx,s.ry)*1.8;
+    const glow = ctx.createRadialGradient(x,y,0,x,y,glowR);
+    glow.addColorStop(0, rgba(cBright[0],cBright[1],cBright[2],s.opacity*0.3));
+    glow.addColorStop(0.4, rgba(cGlow[0],cGlow[1],cGlow[2],s.opacity*0.1));
+    glow.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2],0));
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(x,y,glowR,0,Math.PI*2); ctx.fill();
+
+    // Core
+    const core = ctx.createRadialGradient(x,y,0,x,y,Math.max(s.rx,s.ry));
+    core.addColorStop(0, rgba(cBright[0],cBright[1],cBright[2],s.opacity*1.2));
+    core.addColorStop(0.45, rgba(cCore[0],cCore[1],cCore[2],s.opacity*0.5));
+    core.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2],0));
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.ellipse(x,y,s.rx,s.ry,0.25,0,Math.PI*2); ctx.fill();
+  });
+}
+
+
+// ═══════════════════════════════════════════
+// ANCIENT — Hexagonal glyphs, rising + rotating
+// Hot pink base. Tint toward soft pink-white.
+// ═══════════════════════════════════════════
+function initAncient(w, h) {
+  const rng = seeded(101);
+  const shapes = [];
+  for (let i = 0; i < 10; i++) {
+    shapes.push({
+      x: rng()*w, phase: rng(), size: 9+rng()*13,
+      rotSpeed: (rng()>0.5?1:-1)*(0.12+rng()*0.12),
+      opacity: 0.20+rng()*0.10, speed: 0.7+rng()*0.5,
+    });
+  }
+  return shapes;
+}
+
+function drawAncient(ctx, w, h, t, shapes) {
+  const base = COL.ancient;
+  ctx.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+  ctx.fillRect(0, 0, w, h);
+  const c = tintW(base, 0.45);
+
+  shapes.forEach(s => {
+    const period = 8 / s.speed;
+    const progress = ((t/period+s.phase)%1);
+    const y = h*(1.15-progress*1.35);
+    const x = s.x + Math.sin(t*0.3+s.phase*10)*5;
+    const rot = t * s.rotSpeed;
+
+    let op = s.opacity;
+    if(progress<0.12) op*=progress/0.12;
+    if(progress>0.85) op*=(1-progress)/0.15;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+
+    // Outer hex
+    ctx.beginPath();
+    for(let i=0;i<6;i++){const a=(Math.PI/3)*i-Math.PI/6;const px=Math.cos(a)*s.size;const py=Math.sin(a)*s.size;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+    ctx.closePath();
+    ctx.strokeStyle = rgba(c[0],c[1],c[2],op);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Inner hex
+    ctx.beginPath();
+    for(let i=0;i<6;i++){const a=(Math.PI/3)*i;const px=Math.cos(a)*s.size*0.45;const py=Math.sin(a)*s.size*0.45;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+    ctx.closePath();
+    ctx.strokeStyle = rgba(c[0],c[1],c[2],op*0.5);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.restore();
+  });
+}
+
+
+// ═══════════════════════════════════════════
+// IMMORTAL — ∞ Infinity symbols, horizontal drift + rotation
+// Soft teal-mint base. Tint toward white.
+// ═══════════════════════════════════════════
+function initImmortal(w, h) {
+  const rng = seeded(200);
+  const shapes = [];
+  for (let i = 0; i < 10; i++) {
+    shapes.push({
+      x: rng()*w*1.4, y: 4+rng()*(h-8),
+      size: 8+rng()*12, opacity: 0.28+rng()*0.14,
+      speed: 0.6+rng()*0.5,
+      rot: rng()*0.5-0.25, rotSpeed: (rng()-0.5)*0.08,
+    });
+  }
+  return shapes;
+}
+
+function drawImmortal(ctx, w, h, t, shapes) {
+  const base = COL.immortal;
+  ctx.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+  ctx.fillRect(0, 0, w, h);
+  const c = darken(base, 0.12);
+  const cGlow = darken(base, 0.08);
+
+  shapes.forEach(s => {
+    const period = 9 / s.speed;
+    const x = ((s.x+(t/period)*w*0.8)%(w*1.4))-w*0.1;
+    const rot = s.rot + t*s.rotSpeed;
+    const a = s.size, b = s.size*0.5;
+
+    // Glow behind the symbol
+    const glowR = s.size * 1.8;
+    const glow = ctx.createRadialGradient(x, s.y, 0, x, s.y, glowR);
+    glow.addColorStop(0, rgba(cGlow[0],cGlow[1],cGlow[2], s.opacity*0.35));
+    glow.addColorStop(0.6, rgba(cGlow[0],cGlow[1],cGlow[2], s.opacity*0.1));
+    glow.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2], 0));
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(x, s.y, glowR, 0, Math.PI*2); ctx.fill();
+
+    ctx.save();
+    ctx.translate(x, s.y);
+    ctx.rotate(rot);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.bezierCurveTo(a*0.4,-b,a,-b,a,0);
+    ctx.bezierCurveTo(a,b,a*0.4,b,0,0);
+    ctx.bezierCurveTo(-a*0.4,-b,-a,-b,-a,0);
+    ctx.bezierCurveTo(-a,b,-a*0.4,b,0,0);
+
+    ctx.strokeStyle = rgba(c[0],c[1],c[2],s.opacity);
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.fillStyle = rgba(c[0],c[1],c[2],s.opacity*0.25);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+
+// ═══════════════════════════════════════════
+// DIVINE — Descending rays + star twinkles
+// Green gradient base. Tint toward bright mint-white.
+// ═══════════════════════════════════════════
+function initDivine(w, h) {
+  const rng = seeded(333);
+  const rays = [];
+  for (let i = 0; i < 10; i++) {
+    rays.push({
+      x: rng()*w*1.3, phase: rng(),
+      width: 2+rng()*2.5, height: 22+rng()*28,
+      opacity: 0.18+rng()*0.10, speed: 0.6+rng()*0.5,
+    });
+  }
+  const stars = [];
+  for (let i = 0; i < 14; i++) {
+    stars.push({
+      x: rng()*w, y: 4+rng()*(h-8),
+      size: 3+rng()*5, pulseSpeed: 1.5+rng()*2,
+      pulsePhase: rng()*Math.PI*2, opMax: 0.24+rng()*0.10,
+    });
+  }
+  return { rays, stars };
+}
+
+function drawDivine(ctx, w, h, t, shapes) {
+  // Gradient background matching the game
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0, '#66C995');
+  grad.addColorStop(1, '#53C39A');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  const c = tintW(COL.divine, 0.5);
+
+  // Falling diagonal rays
+  const rayAngle = 0.22;
+  shapes.rays.forEach(r => {
+    const period = 7/r.speed;
+    const progress = ((t/period+r.phase)%1);
+    const x = ((r.x+progress*w*0.3)%(w*1.3))-w*0.1;
+    const y = -r.height+progress*(h+r.height*2.5);
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rayAngle);
+    const rg = ctx.createLinearGradient(0,-r.height/2,0,r.height/2);
+    rg.addColorStop(0, rgba(c[0],c[1],c[2],0));
+    rg.addColorStop(0.2, rgba(c[0],c[1],c[2],r.opacity));
+    rg.addColorStop(0.8, rgba(c[0],c[1],c[2],r.opacity));
+    rg.addColorStop(1, rgba(c[0],c[1],c[2],0));
+    ctx.fillStyle = rg;
+    ctx.beginPath();
+    ctx.ellipse(0,0,r.width,r.height/2,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Star twinkles
+  shapes.stars.forEach(s => {
+    const pulse = (Math.sin(t*s.pulseSpeed+s.pulsePhase)+1)/2;
+    const op = 0.06+s.opMax*pulse;
+    const sz = s.size*(1+pulse*0.25);
+
+    ctx.fillStyle = rgba(255,255,240,op);
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y-sz);
+    ctx.lineTo(s.x+sz*0.18, s.y-sz*0.18);
+    ctx.lineTo(s.x+sz, s.y);
+    ctx.lineTo(s.x+sz*0.18, s.y+sz*0.18);
+    ctx.lineTo(s.x, s.y+sz);
+    ctx.lineTo(s.x-sz*0.18, s.y+sz*0.18);
+    ctx.lineTo(s.x-sz, s.y);
+    ctx.lineTo(s.x-sz*0.18, s.y-sz*0.18);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+
+// ═══════════════════════════════════════════
+// ETHERNAL — Aurora + Diamonds + Breath (white base!)
+// White base requires a different approach: shapes use soft
+// gold/amber tints to create warmth on the clean white.
+// ═══════════════════════════════════════════
+const ETH_SHAPE_COL = [200, 170, 80]; // richer gold for more pop on white
+
+function initEthernal(w, h) {
+  const rng = seeded(555);
+  const diamonds = [];
+  for (let i = 0; i < 18; i++) {
+    diamonds.push({
+      x: rng()*w*1.4, y: rng()*h*1.4,
+      size: 5+rng()*9, speed: 0.5+rng()*0.5,
+      phase: rng()*Math.PI*2,
+      rot: rng()*Math.PI*2, rotSpeed: (rng()-0.5)*0.35,
+      opacity: 0.28+rng()*0.16,
+      glowPhase: rng()*Math.PI*2,
+    });
+  }
+  return { diamonds };
+}
+
+function drawEthernal(ctx, w, h, t, shapes) {
+  // White base
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, w, h);
+
+  const c = ETH_SHAPE_COL;
+  const cBright = [240, 215, 100]; // bright gold
+  const cWarm = [255, 235, 170];   // warm highlight
+
+  // Layer 1: Background breath pulse — STRONGER
+  const breathPulse = (Math.sin(t*0.785)+1)/2;
+  const breathOp = 0.08+breathPulse*0.14;
+  const breathGrad = ctx.createRadialGradient(w*0.5,h*0.5,0,w*0.5,h*0.5,w*0.6);
+  breathGrad.addColorStop(0, rgba(cBright[0],cBright[1],cBright[2],breathOp));
+  breathGrad.addColorStop(0.6, rgba(c[0],c[1],c[2],breathOp*0.4));
+  breathGrad.addColorStop(1, rgba(c[0],c[1],c[2],0));
+  ctx.fillStyle = breathGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Layer 2: Aurora sine wave — BOLDER
+  const waveY = h*0.5+Math.sin(t*0.628)*h*0.2;
+  const waveH = h*0.5;
+  const auroraOp = 0.18+Math.sin(t*0.35)*0.08;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  for(let x=0;x<=w;x+=2){
+    const ly=waveY-waveH/2+Math.sin(x*0.02+t*0.5)*6+Math.sin(x*0.008+t*0.3)*4;
+    ctx.lineTo(x,ly);
+  }
+  for(let x=w;x>=0;x-=2){
+    const ly=waveY+waveH/2+Math.sin(x*0.02+t*0.5)*6+Math.sin(x*0.008+t*0.3)*4;
+    ctx.lineTo(x,ly);
+  }
+  ctx.closePath();
+  const ag=ctx.createLinearGradient(0,waveY-waveH/2,0,waveY+waveH/2);
+  ag.addColorStop(0, rgba(c[0],c[1],c[2],0));
+  ag.addColorStop(0.25, rgba(c[0],c[1],c[2],auroraOp*0.7));
+  ag.addColorStop(0.45, rgba(cBright[0],cBright[1],cBright[2],auroraOp));
+  ag.addColorStop(0.55, rgba(cWarm[0],cWarm[1],cWarm[2],auroraOp*1.1));
+  ag.addColorStop(0.75, rgba(cBright[0],cBright[1],cBright[2],auroraOp*0.7));
+  ag.addColorStop(1, rgba(c[0],c[1],c[2],0));
+  ctx.fillStyle=ag;
+  ctx.fill();
+  ctx.restore();
+
+  // Layer 3: Glowing diamonds with halos
+  shapes.diamonds.forEach(d => {
+    const period = 6/d.speed;
+    const progress = ((t/period+d.phase/(Math.PI*2))%1);
+    const x = ((d.x+progress*w*0.5)%(w*1.4))-w*0.1;
+    const y = ((d.y-progress*h*1.2)%(h*1.4))-h*0.1;
+    const rot = d.rot+t*d.rotSpeed;
+
+    // Per-diamond glow pulse
+    const glowPulse = (Math.sin(t*1.5+d.glowPhase)+1)/2;
+    const op = d.opacity * (0.7 + glowPulse*0.3);
+
+    // Glow halo behind each diamond
+    const glowR = d.size * 2.5;
+    const halo = ctx.createRadialGradient(x,y,0,x,y,glowR);
+    halo.addColorStop(0, rgba(cBright[0],cBright[1],cBright[2], op*0.4));
+    halo.addColorStop(0.4, rgba(c[0],c[1],c[2], op*0.15));
+    halo.addColorStop(1, rgba(c[0],c[1],c[2], 0));
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(x,y,glowR,0,Math.PI*2); ctx.fill();
+
+    // Diamond shape
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(rot);
+    const sz=d.size;
+    ctx.beginPath();
+    ctx.moveTo(0,-sz);
+    ctx.lineTo(sz*0.45,0);
+    ctx.lineTo(0,sz);
+    ctx.lineTo(-sz*0.45,0);
+    ctx.closePath();
+    ctx.fillStyle = rgba(c[0],c[1],c[2],op);
+    ctx.fill();
+    // Bright center highlight
+    ctx.fillStyle = rgba(cWarm[0],cWarm[1],cWarm[2],op*0.4);
+    ctx.beginPath();
+    ctx.moveTo(0,-sz*0.5);
+    ctx.lineTo(sz*0.2,0);
+    ctx.lineTo(0,sz*0.5);
+    ctx.lineTo(-sz*0.2,0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+
+// ═══════════════════════════════════════════
+// ENGINE
+// ═══════════════════════════════════════════
+const TIERS = [
+  { id:'row-legendary', init:initLegendary, draw:drawLegendary },
+  { id:'row-mythic',    init:initMythic,    draw:drawMythic },
+  { id:'row-ancient',   init:initAncient,   draw:drawAncient },
+  { id:'row-immortal',  init:initImmortal,  draw:drawImmortal },
+  { id:'row-divine',    init:initDivine,    draw:drawDivine },
+  { id:'row-ethernal',  init:initEthernal,  draw:drawEthernal },
+];
+
+const canvases = [];
+
+function setup() {
+  canvases.length = 0;
+  TIERS.forEach(tier => {
+    const el = document.getElementById(tier.id);
+    if(!el) return;
+    const canvas = el.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const rect = el.getBoundingClientRect();
+    const dpr = window.devicePixelRatio||1;
+    canvas.width = rect.width*dpr;
+    canvas.height = rect.height*dpr;
+    ctx.scale(dpr,dpr);
+    const w=rect.width, h=rect.height;
+    canvases.push({ ctx, w, h, shapes:tier.init(w,h), draw:tier.draw, dpr });
+  });
+}
+
+function animate(ts) {
+  if(!lastTS) lastTS=ts;
+  const dt=(ts-lastTS)/1000;
+  lastTS=ts;
+  if(!paused) globalTime+=dt*speedMult;
+  canvases.forEach(c=>{
+    c.ctx.setTransform(c.dpr,0,0,c.dpr,0,0);
+    c.draw(c.ctx,c.w,c.h,globalTime,c.shapes);
+  });
+  requestAnimationFrame(animate);
+}
+
+setup();
+window.addEventListener('resize',setup);
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
