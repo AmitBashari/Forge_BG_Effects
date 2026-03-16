@@ -294,11 +294,12 @@ function drawMythic(ctx, w, h, t, shapes) {
   const cGlow = [190, 155, 110];   // amber glow
   const cBright = [230, 205, 165]; // bright highlight
   const ang = 0.5; // ~30 degree diagonal
+  const driftSlow = 0.5; // 50 % slower movement
 
   // Back layer — slow diagonal drift, big soft orbs
   shapes.back.forEach(s => {
-    const dx = Math.cos(ang)*(t/12)*w;
-    const dy = -Math.sin(ang)*(t/12)*w;
+    const dx = Math.cos(ang)*(t/(12/driftSlow))*w;
+    const dy = -Math.sin(ang)*(t/(12/driftSlow))*w;
     let x = ((s.x+dx)%(w+s.rx*4))-s.rx*2;
     let y = ((s.y+dy)%(h+s.ry*4));
     if(y<-s.ry*2) y+=h+s.ry*4; if(y>h+s.ry*2) y-=h+s.ry*4;
@@ -338,8 +339,9 @@ function drawMythic(ctx, w, h, t, shapes) {
 
   // Front layer — faster opposite diagonal, smaller orbs
   shapes.front.forEach(s => {
-    const dx = -Math.cos(ang)*(t/8)*w;
-    const dy = Math.sin(ang)*(t/8)*w;
+    const frontSlow = driftSlow * 0.8; // extra 20 % slower for small particles
+    const dx = -Math.cos(ang)*(t/(8/frontSlow))*w;
+    const dy = Math.sin(ang)*(t/(8/frontSlow))*w;
     let x = ((s.x+dx)%(w+s.rx*4));
     if(x<-s.rx*2) x+=w+s.rx*4;
     let y = ((s.y+dy)%(h+s.ry*4));
@@ -444,12 +446,16 @@ function drawAncient(ctx, w, h, t, shapes) {
 function initImmortal(w, h) {
   const rng = seeded(200);
   const shapes = [];
-  for (let i = 0; i < 10; i++) {
+  const count = 10; // doubled shape count
+  for (let i = 0; i < count; i++) {
+    // Evenly space x across the travel width, with small jitter, for consistent density
+    const baseX = (i / count) * w * 1.4;
+    const jitterX = (rng() - 0.5) * (w * 1.4 / count) * 0.5;
     shapes.push({
-      x: rng()*w*1.4, y: 4+rng()*(h-8),
-      size: 8+rng()*12, opacity: 0.28+rng()*0.14,
-      speed: 0.6+rng()*0.5,
-      rot: rng()*0.5-0.25, rotSpeed: (rng()-0.5)*0.08,
+      x: baseX + jitterX, y: 4+rng()*(h-8),
+      size: 14+rng()*14, opacity: 0.28+rng()*0.14,
+      speed: 0.18+rng()*0.15,
+      rot: rng()*Math.PI*2-Math.PI, rotSpeed: (rng()-0.5)*0.024,
     });
   }
   return shapes;
@@ -459,26 +465,36 @@ function drawImmortal(ctx, w, h, t, shapes) {
   const base = COL.immortal;
   ctx.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
   ctx.fillRect(0, 0, w, h);
-  const c = darken(base, 0.12);
-  const cGlow = darken(base, 0.08);
+  const c = darken(base, 0.27);    // 15 % more saturated
+  const cGlow = darken(base, 0.23);
+
+  const diagAng = 0.5; // ~30° diagonal: bottom-left → top-right
 
   shapes.forEach(s => {
     const period = 9 / s.speed;
-    const x = ((s.x+(t/period)*w*0.8)%(w*1.4))-w*0.1;
+    const drift = (t / period);
+    const dx = Math.cos(diagAng) * drift * w * 0.8;
+    const dy = -Math.sin(diagAng) * drift * w * 0.8; // negative = upward
+    const x = ((s.x + dx) % (w * 1.4)) - w * 0.1;
+    let y = s.y + dy;
+    // Wrap y so shapes reappear at bottom when they exit top
+    const totalH = h + s.size * 4;
+    y = ((y % totalH) + totalH) % totalH;
+    if (y > h + s.size * 2) y -= totalH;
     const rot = s.rot + t*s.rotSpeed;
     const a = s.size, b = s.size*0.5;
 
     // Glow behind the symbol
     const glowR = s.size * 1.8;
-    const glow = ctx.createRadialGradient(x, s.y, 0, x, s.y, glowR);
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, glowR);
     glow.addColorStop(0, rgba(cGlow[0],cGlow[1],cGlow[2], s.opacity*0.35));
     glow.addColorStop(0.6, rgba(cGlow[0],cGlow[1],cGlow[2], s.opacity*0.1));
     glow.addColorStop(1, rgba(cGlow[0],cGlow[1],cGlow[2], 0));
     ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(x, s.y, glowR, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI*2); ctx.fill();
 
     ctx.save();
-    ctx.translate(x, s.y);
+    ctx.translate(x, y);
     ctx.rotate(rot);
     ctx.beginPath();
     ctx.moveTo(0,0);
@@ -590,9 +606,9 @@ function initEthernal(w, h) {
   for (let i = 0; i < 18; i++) {
     diamonds.push({
       x: rng()*w*1.4, y: rng()*h*1.4,
-      size: 5+rng()*9, speed: 0.5+rng()*0.5,
+      size: 5+rng()*9, speed: 0.225+rng()*0.225,
       phase: rng()*Math.PI*2,
-      rot: rng()*Math.PI*2, rotSpeed: (rng()-0.5)*0.35,
+      rot: rng()*Math.PI*2, rotSpeed: (rng()-0.5)*0.1575,
       opacity: 0.28+rng()*0.16,
       glowPhase: rng()*Math.PI*2,
     });
